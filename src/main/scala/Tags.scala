@@ -1,0 +1,1 @@
+type Tags = Map[String, Lambda]
