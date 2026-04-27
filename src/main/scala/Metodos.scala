@@ -22,6 +22,29 @@ object Metodos {
   }
   
   def reducir(tags: Tags, linea: String): (Tags, List[String]) = {
+    val partes = linea.trim.split("\\s+").toList
     
+    // esto tambien se podria implementar de otra forma (creo)
+    // true: call by name, false: call by value
+    val (estrategia, cola) = partes match {
+      case "cbn" :: t => (true, t)
+      case "cbv" :: t => (false, t)
+    }
+    //
+    val (debug, cola2) = cola match {
+      case "debug" :: t => (true, t)
+      case t => (false, t)
+    }
+    val expLinea = cola2.mkString(" ")
+    val exp = Parser.parsear(resolverEtiquetas(tags, expLinea))
+    
+    val pasos = Reductor.reducir(estrategia, debug, exp)
+    val head = s"EXPR = (FUNCION QUE IMPRIME UNA EXPRESION LAMBDA)"
+    (tags, head :: pasos)
   }
+  
+  def resolverEtiquetas(tags:Tags, linea: String): String = 
+    tags.foldLeft(linea) {
+      case (res, (nombre, exp)) => res.replace(s"$nombre", "FUNCIÓN QUE IMPRIME UNA EXPRESION LAMBDA")
+    }
 }
