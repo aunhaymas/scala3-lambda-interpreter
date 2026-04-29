@@ -18,4 +18,3 @@ object Lexer {
     create_list(input_list, Nil)
   }
   }
-}
