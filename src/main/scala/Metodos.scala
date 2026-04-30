@@ -43,8 +43,16 @@ object Metodos {
     (tags, head :: pasos)
   }
   
-  def resolverEtiquetas(tags:Tags, linea: String): String = 
+  def resolverEtiquetas(tags:Tags, linea: String): String = { 
     tags.foldLeft(linea) {
-      case (res, (nombre, exp)) => res.replace(s"$nombre", "FUNCIÓN QUE IMPRIME UNA EXPRESION LAMBDA")
+      case (res, (nombre, exp)) => res.replace(s"!$nombre", "FUNCIÓN QUE IMPRIME UNA EXPRESION LAMBDA")
     }
+  }
+  
+  def resolverExp(exp: Lambda): String = exp match {
+    case Var(x) => x
+    case Abs(v, cuerpo) => s"λ$v.(${print(cuerpo)})"
+    case App(f, argum) =>
+      
+  }
 }
