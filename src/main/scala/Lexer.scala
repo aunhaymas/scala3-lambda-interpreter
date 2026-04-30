@@ -1,7 +1,10 @@
+import scala.annotation.tailrec
+
 object Lexer {
   def tokenize(input:String): List[Token] ={
     val input_list = input.toList
 
+    @tailrec
     def create_list(remaining: List[Char], acc: List[Token]): List[Token] = {
       remaining match {
         case Nil => acc.reverse // damos vuelta la lista
