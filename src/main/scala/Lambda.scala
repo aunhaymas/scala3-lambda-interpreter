@@ -15,3 +15,6 @@ case object LPar extends Token  // (
 case object RPar extends Token  // )
 case object Space extends Token
 case class TVar(x: String) extends Token
+//Para etiquetas
+case object Equal extends Token
+case class TTag(x:String) extends Token // !Tags
