@@ -4,6 +4,7 @@ object Lexer {
   private def getOp(word:String):(Token)= word match{
     case "calc_vars"=>CalcVars
     case "reduce" => Reduce
+    case _ => TVar(word) //asumo que es una variable
   }
   private def getWord(chars: List[Char]):(String,List[Char])={
     val (word, rest)= chars.span(c=>c.isDigit||c.isLetter)
