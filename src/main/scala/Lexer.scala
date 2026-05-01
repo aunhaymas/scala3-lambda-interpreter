@@ -7,7 +7,7 @@ object Lexer {
   }
   private def getWord(chars: List[Char]):(String,List[Char])={
     val (word, rest)= chars.span(c=>c.isDigit||c.isLetter)
-    return (word.mkString,rest)
+    (word.mkString,rest)
   }
   def tokenize(input:String): List[Token] ={
     val input_list = input.toList
