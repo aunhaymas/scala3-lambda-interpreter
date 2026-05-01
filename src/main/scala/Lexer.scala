@@ -1,6 +1,10 @@
 import scala.annotation.tailrec
 
 object Lexer {
+  private def getOp(word:String):(Token)= word match{
+    case "calc_vars"=>CalcVars
+    case "reduce" => Reduce
+  }
   private def getWord(chars: List[Char]):(String,List[Char])={
     val (word, rest)= chars.span(c=>c.isDigit||c.isLetter)
     return (word.mkString,rest)
@@ -17,13 +21,14 @@ object Lexer {
         case '(' :: rest => create_list(rest, LPar :: acc)
         case ')' :: rest => create_list(rest, RPar :: acc)
         case ' ' :: rest => create_list(rest, Space :: acc)
+        case '='::rest=> create_list(rest, Equal :: acc)// Etiquetas
+
+        case c::_ if c.isLetter =>
+          val (word,more)=getWord(remaining)
+          create_list(more, getOp(word) ::acc)
         case '!'::rest=> // Etiquetas
           val (name, more) = getWord(rest)
           create_list(more,TTag(name)::acc)
-        case c::_ if c.isLetter =>
-          val (word,more)=getWord(remaining)
-          create_list(more, TVar(word)::acc)
-
         case _ :: rest => create_list(rest, acc) // Para carácteres no válidps
       }
     }
