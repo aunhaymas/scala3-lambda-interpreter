@@ -1,15 +1,7 @@
 import scala.annotation.tailrec
 
 object Lexer {
-  private def getOp(word:String):(Token)= word match{
-    case "calc_vars"=>CalcVars
-    case "reduce" => Reduce
-    case _ => TVar(word) //asumo que es una variable
-  }
-  private def getWord(chars: List[Char]):(String,List[Char])={
-    val (word, rest)= chars.span(c=>c.isDigit||c.isLetter)
-    (word.mkString,rest)
-  }
+
   def tokenize(input:String): List[Token] ={
     val input_list = input.toList
     @tailrec
@@ -23,7 +15,6 @@ object Lexer {
         case ')' :: rest => create_list(rest, RPar :: acc)
         case ' ' :: rest => create_list(rest, Space :: acc)
         case '='::rest=> create_list(rest, Equal :: acc)// Etiquetas
-
         case c::_ if c.isLetter =>
           val (word,more)=getWord(remaining)
           create_list(more, getOp(word) ::acc)
@@ -34,6 +25,27 @@ object Lexer {
       }
     }
 
-    create_list(input_list, Nil)
+    clean_spaces(create_list(input_list, Nil),Nil)
   }
+
+  private def getOp(word: String): (Token) = word match {
+    case "calc_vars" => CalcVars
+    case "reduce" => Reduce
+    case "cbv" => CBV
+    case "cbn" => CBN
+    case "debug" => Debug
+    case _ => TVar(word) //asumo que es una variable
+  }
+
+  private def getWord(chars: List[Char]): (String, List[Char]) = {
+    val (word, rest) = chars.span(c => c.isDigit || c.isLetter)
+    (word.mkString, rest)
+  }
+    @tailrec
+    private def clean_spaces(list:List[Token],accum:List[Token]):List[Token] = list match{
+      case Nil => accum
+      case Space::next::rest if next==Space =>
+        clean_spaces(next::rest, accum)
+      case h::rest => clean_spaces(rest,h::accum)
+    }
   }
