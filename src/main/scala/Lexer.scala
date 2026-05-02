@@ -49,16 +49,21 @@ object Lexer {
     @tailrec
     private def clean_spaces(list:List[Token],accum:List[Token]):List[Token] = list match{
       case Nil => accum
+      // Espacios dobles
       case Space::next::rest if next==Space =>
         clean_spaces(next::rest, accum)
-
+      // Space finales
       case h::Space::Nil => clean_spaces(Nil,h::accum)
+      // Space entre dos elementos que no son parentesis o TVars
       case h::Space::rest if h==LPar || h==Lambda || h==Dot||h==Equal
       => clean_spaces(h::rest,accum)
+      // Space antes de ')':  (λx.x   )-> (λx.x)
       case Space::mid::rest if mid==RPar || mid==Dot
       => clean_spaces(mid::rest,accum)
 
+      // Space válido! (λx.x) y-> (λx.x) y
       case Space::rest => clean_spaces(rest,Space::accum)
+      // SigaSiga
       case h::rest => clean_spaces(rest,h::accum)
     }
     @tailrec
