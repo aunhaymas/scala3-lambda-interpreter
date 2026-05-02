@@ -1,7 +1,12 @@
 import scala.annotation.tailrec
 
 object Lexer {
-
+  // tokenize, recibeInput:String
+  // retorna una lista de tokens
+  // Ejemplo: tokenize("reduce cbn λx.(λy.(y) x)")
+  // input  = "reduce cbn λx.y"
+  // tokenize(input)->
+  // Reduce,Space,CBN,Space,Lambda,TVar("x"),TVar("y")
   def tokenize(input:String): List[Token] ={
     val input_list = input.toList
     @tailrec
