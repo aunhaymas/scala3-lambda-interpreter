@@ -25,7 +25,7 @@ class LexerTest extends AnyFunSuite:
     assert(tokens.equals(expected))
     }
   test("Lexer tokeniza reduce cbn λx.(λy.(y) x con espacios extra)") {
-    val input = "reduce cbn λx.(λy.(y)     x)"
+    val input = "reduce  cbn λx .(λy. (y)     x)"
     val tokens = Lexer.tokenize(input)
     val expected: List[Token] = (
       List(Reduce, Space, CBN, Space,
@@ -33,6 +33,25 @@ class LexerTest extends AnyFunSuite:
         Lambda, TVar("y"), Dot, LPar, TVar("y"), RPar, Space, TVar("x"), RPar))
     assert(tokens.equals(expected))
   }
+  test("Lexer tokeniza reduce cbn (λx.(λy.(x))) y ") {
+    val input = "reduce cbn (λx. (λy. (x))) y"
+    val tokens = Lexer.tokenize(input)
+    val expected = List(
+      Reduce, Space, CBN, Space, LPar, Lambda, TVar("x"), Dot,
+      LPar, Lambda, TVar("y"), Dot, LPar, TVar("x"), RPar, RPar, RPar, Space, TVar("y")
+    )
+    assert(expected.equals(tokens))
+    }
+  test("reduce cbn (λx.(x) y) (λy.(y) z)"){
+    val tokens = Lexer.tokenize("reduce cbn (λx.(x) y) (λy.(y) z)")
+    val expected=List(
+      Reduce,Space,CBN,Space,LPar,
+      Lambda,TVar("x"),Dot,LPar,TVar("x"),RPar,Space,TVar("y"),RPar,
+      Space,LPar,Lambda,TVar("y"),Dot,LPar,TVar("y"),RPar,Space,TVar("z"),RPar
+    )
+    assert(tokens.equals(expected))
+    }
+
 
 
 
