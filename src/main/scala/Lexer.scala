@@ -24,8 +24,8 @@ object Lexer {
         case _ :: rest => create_list(rest, acc) // Para carácteres no válidps
       }
     }
-    val res :List[Token] = clean_spaces(create_list(input_list, Nil),Nil)
-    res.reverse
+    val res :List[Token] =clean_spaces(create_list(input_list, Nil),Nil)
+    clean_first_spaces(res.reverse)
   }
 
   private def getOp(word: String): (Token) = word match {
@@ -48,4 +48,11 @@ object Lexer {
         clean_spaces(next::rest, accum)
       case h::rest => clean_spaces(rest,h::accum)
     }
+    @tailrec
+    private def clean_first_spaces(list: List[Token]):List[Token] = list match {
+    case Nil=>Nil
+    case Space::rest => clean_first_spaces(rest)
+    case h::rest => h::rest
+
+  }
   }
