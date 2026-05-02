@@ -87,5 +87,29 @@ class LexerTest extends AnyFunSuite:
     )
     assert(tokens.equals(expected))
   }
-
+  test("Lexer tokeniza comandos complejos con etiquetas y estrategias") {
+    // Usamos un string simple sin saltos de línea raros para asegurar el test
+    val input = "MI_EJEMPLO=(λx.(λy.(y)) (λx.(x x) λx.(x x))) calc_vars !MI_EJEMPLO reduce cbn !MI_EJEMPLO IDZ=λz.(z) calc_vars (λf.(f b)) (λx.(!IDZ) z) a reduce cbv debug (λf.(f b)) (λx.(!IDZ) z) a"
+    val tokens = Lexer.tokenize(input)
+    val expected = List(
+      //ES UN MONTÓN ESTO
+      // MI_EJEMPLO=(λx.(λy.(y)) (λx.(x x) λx.(x x)))
+      TVar("MI_EJEMPLO"), Equal, LPar, Lambda, TVar("x"), Dot,
+      LPar, Lambda, TVar("y"), Dot, LPar, TVar("y"), RPar, RPar,
+      Space, LPar, Lambda, TVar("x"), Dot, LPar, TVar("x"), Space, TVar("x"), RPar,
+      Space, Lambda, TVar("x"), Dot, LPar, TVar("x"), Space, TVar("x"), RPar, RPar, RPar,
+      Space, // espacio para calcvars justo despues MI_EJEMPLO
+      CalcVars, Space, TTag("MI_EJEMPLO"), Space,
+      Reduce, Space, CBN, Space, TTag("MI_EJEMPLO"), Space,
+      TVar("IDZ"), Equal, Lambda, TVar("z"), Dot, LPar, TVar("z"), RPar,
+      Space, CalcVars, Space, LPar, Lambda, TVar("f"), Dot, LPar, TVar("f"),
+      Space, TVar("b"), RPar, RPar, Space, LPar, Lambda, TVar("x"), Dot,
+      LPar, TTag("IDZ"), RPar, Space, TVar("z"), RPar, Space, TVar("a"),
+      Space, Reduce, Space, CBV, Space, Debug, Space,
+      LPar, Lambda, TVar("f"), Dot, LPar, TVar("f"), Space, TVar("b"), RPar, RPar,
+      Space, LPar, Lambda, TVar("x"), Dot, LPar, TTag("IDZ"), RPar, Space, TVar("z"), RPar, Space, TVar("a")
+    )
+    println(tokens)
+    assert(tokens.equals(expected))
+  }
 
