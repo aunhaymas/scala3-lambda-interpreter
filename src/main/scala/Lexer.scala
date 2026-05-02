@@ -19,6 +19,7 @@ object Lexer {
         case '(' :: rest => create_list(rest, LPar :: acc)
         case ')' :: rest => create_list(rest, RPar :: acc)
         case ' ' :: rest => create_list(rest, Space :: acc)
+        case '\n' :: rest => create_list(rest, Space :: acc)
         case '='::rest=> create_list(rest, Equal :: acc)// Etiquetas
         case c::_ if c.isLetter =>
           val (word,more)=getWord(remaining)
@@ -43,7 +44,8 @@ object Lexer {
   }
 
   private def getWord(chars: List[Char]): (String, List[Char]) = {
-    val (word, rest) = chars.span(c => c.isDigit || c.isLetter)
+    val (word, rest) = chars.span(c => c.isDigit || c.isLetter || c=='_')
+
     (word.mkString, rest)
   }
     @tailrec

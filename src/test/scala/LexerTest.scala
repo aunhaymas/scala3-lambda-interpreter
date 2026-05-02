@@ -109,7 +109,6 @@ class LexerTest extends AnyFunSuite:
       LPar, Lambda, TVar("f"), Dot, LPar, TVar("f"), Space, TVar("b"), RPar, RPar,
       Space, LPar, Lambda, TVar("x"), Dot, LPar, TTag("IDZ"), RPar, Space, TVar("z"), RPar, Space, TVar("a")
     )
-    println(tokens)
     assert(tokens.equals(expected))
   }
 
