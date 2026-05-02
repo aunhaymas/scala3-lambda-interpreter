@@ -112,3 +112,35 @@ class LexerTest extends AnyFunSuite:
     assert(tokens.equals(expected))
   }
 
+  test("reduce cbn (λx.(λx.(y x))) z") {
+  val input = "reduce cbn (λx.(λx.(y x))) z"
+  val tokens = Lexer.tokenize(input)
+  val expected = List(
+    Reduce, Space, CBN, Space, LPar, Lambda, TVar("x"), Dot,
+    LPar, Lambda, TVar("x"), Dot, LPar, TVar("y"), Space, TVar("x"),
+    RPar, RPar, RPar, Space, TVar("z")
+  )
+  assert(tokens.equals(expected))
+}
+  test("reduce cbn λy.(λx.(y y)) a (λx.(x x) λx.(x x))") {
+    val input = "reduce cbn λy.(λx.(y  y)) a (λx.(x x) λx.(x x))"
+    val tokens = Lexer.tokenize(input)
+    val expected = List(
+      Reduce, Space, CBN, Space, Lambda, TVar("y"), Dot, LPar, Lambda, TVar("x"), Dot,
+      LPar, TVar("y"), Space, TVar("y"), RPar, RPar, Space, TVar("a"), Space,
+      LPar, Lambda, TVar("x"), Dot, LPar, TVar("x"), Space, TVar("x"), RPar,
+      Space, Lambda, TVar("x"), Dot, LPar, TVar("x"), Space, TVar("x"), RPar, RPar
+    )
+    assert(tokens.equals(expected))
+  }
+  test("reduce cbn λy.(λx.(y y)) a (λx.(x x))") {
+    val expected = List(
+      Reduce, Space, CBN, Space,
+      Lambda, TVar("y"), Dot, LPar, Lambda, TVar("x"), Dot,
+      LPar, TVar("y"), Space, TVar("y"), RPar, RPar,
+      Space, TVar("a"),
+      Space, LPar, Lambda, TVar("x"), Dot, LPar, TVar("x"), Space, TVar("x"), RPar, RPar
+    )
+
+    assert(Lexer.tokenize("reduce cbn λy.(λx.(y y)) a (λx.(x x))").equals(expected))
+  }
