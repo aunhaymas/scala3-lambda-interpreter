@@ -46,6 +46,14 @@ object Lexer {
       case Nil => accum
       case Space::next::rest if next==Space =>
         clean_spaces(next::rest, accum)
+
+      case h::Space::Nil => clean_spaces(Nil,h::accum)
+      case h::Space::rest if h==LPar || h==Lambda || h==Dot||h==Equal
+      => clean_spaces(h::rest,accum)
+      case Space::mid::rest if mid==RPar || mid==Dot
+      => clean_spaces(mid::rest,accum)
+
+      case Space::rest => clean_spaces(rest,Space::accum)
       case h::rest => clean_spaces(rest,h::accum)
     }
     @tailrec
