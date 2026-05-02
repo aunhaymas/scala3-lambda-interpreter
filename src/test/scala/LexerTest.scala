@@ -73,5 +73,19 @@ class LexerTest extends AnyFunSuite:
   )
   assert(tokens.equals(expected))
 }
+  test("Lexer tokeniza reduce cbn (λx.(λy.(y)) (λx.(x x) λx.(x x)))") {
+    val input = "reduce cbn (λx.(λy.(y)) (λx.(x x) λx.(x x)))"
+    val tokens = Lexer.tokenize(input)
+    val expected = List(
+      Reduce, Space, CBN, Space,
+      LPar, Lambda, TVar("x"), Dot,
+      LPar, Lambda, TVar("y"), Dot,
+      LPar, TVar("y"), RPar, RPar, Space,
+      LPar, Lambda, TVar("x"), Dot, LPar, TVar("x"), Space, TVar("x"), RPar,
+      Space, Lambda, TVar("x"), Dot, LPar, TVar("x"), Space, TVar("x"), RPar,
+      RPar, RPar
+    )
+    assert(tokens.equals(expected))
+  }
 
 
