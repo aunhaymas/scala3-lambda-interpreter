@@ -1,16 +1,13 @@
 object Variables {
   def libres(exp: Lambda): List[String] = exp match {
-    case Var(x) => List(x)
-    case Abs(v, cuerpo) => libres(cuerpo).filterNot(_ == v)
-    case App(f, a) => dedup(libres(f) ++ libres(a))
+    case Var(nombre) => List(nombre)
+    case Abs(parametro, cuerpo) => libres(cuerpo).filter(_ != parametro)
+    case App(funcion, argumento) => (libres(funcion) ++ libres(argumento)).distinct
   }
 
   def ligadas(exp: Lambda): List[String] = exp match {
     case Var(_) => List.empty
-    case Abs(v, cuerpo) => dedup(v :: ligadas(cuerpo))
-    case App(f, a) => dedup(ligadas(f) ++ ligadas(a))
+    case Abs(parametro, cuerpo) => (parametro :: ligadas(cuerpo)).distinct
+    case App(funcion, argumento) => (ligadas(funcion) ++ ligadas(argumento)).distinct
   }
-
-  private def dedup(xs: List[String]): List[String] =
-    xs.foldLeft(List.empty[String])((acc, x) => if (acc.contains(x)) acc else acc :+ x)
 }
