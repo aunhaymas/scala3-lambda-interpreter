@@ -1,4 +1,5 @@
 import scala.io.Source
+import scala.annotation.tailrec
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -7,6 +8,7 @@ object Main {
     resultado.foreach(println)
   }
 
+  @tailrec
   def procesar(lineas: List[String], tags: Map[String, Lambda], salida: List[String]): List[String] = {
     if (lineas.isEmpty) salida
     else {
@@ -42,17 +44,39 @@ object Main {
       case "cbv" :: t => (false, t)
       case t => (true, t)
     }
-    val expTexto = sinEstrategia match {
-      case "debug" :: t => t.mkString(" ")
-      case t => t.mkString(" ")
+    val (debug, restoTexto) = sinEstrategia match {
+      case "debug" :: t => (true, t)
+      case t => (false, t)
     }
+    val expTexto = restoTexto.mkString(" ")
     intentarParsear(expTexto, tags) match {
       case Right(exp) =>
-        val reducida = Reductor.reducir(estrategia, exp)
-        (tags, List(mostrarFinal(reducida)))
+        if (debug) (tags, trazaCompleta(estrategia, exp))
+        else (tags, List(mostrarFinal(Reductor.reducir(estrategia, exp))))
       case Left(mensaje) =>
         (tags, List(mensaje))
     }
+  }
+
+  def trazaCompleta(estrategia: Boolean, exp: Lambda): List[String] = {
+    val inicial = s"EXPR = ${mostrar(exp)}"
+    inicial :: continuarTraza(estrategia, exp)
+  }
+
+  def continuarTraza(estrategia: Boolean, exp: Lambda): List[String] = {
+    Reductor.unPaso(estrategia, exp) match {
+      case None => List(mostrarFinal(exp))
+      case Some(paso) =>
+        val (etiqueta, nuevaExp) = formatearPaso(paso)
+        s"$etiqueta = ${mostrar(nuevaExp)}" :: continuarTraza(estrategia, nuevaExp)
+    }
+  }
+
+  def formatearPaso(paso: PasoReduccion): (String, Lambda) = paso match {
+    case PasoCONV(viejo, nuevo, nuevaExp) =>
+      (s"CONV[$viejo -> $nuevo]", nuevaExp)
+    case PasoSUST(parametro, argumento, nuevaExp) =>
+      (s"SUST[$parametro:=${mostrar(argumento)}]", nuevaExp)
   }
 
   def definirEtiqueta(linea: String, tags: Map[String, Lambda]): (Map[String, Lambda], List[String]) = {
