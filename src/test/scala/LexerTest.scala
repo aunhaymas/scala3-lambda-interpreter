@@ -5,19 +5,19 @@ import org.scalatest.funsuite.AnyFunSuite
 class LexerTest extends AnyFunSuite:
   test("Lexer tokenize λx.x") {
     val input = "λx.x"
-    val tokens: List[Token] = Lexer.tokenize(input)
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected: List[Token] = List(Lambda, TVar("x"), Dot, TVar("x"))
     assert(tokens.equals(expected))
   }
   test("Lexer tokenize λx.x con espacios extra") {
     val input = "    λx.x"
-    val tokens: List[Token] = Lexer.tokenize(input)
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected: List[Token] = List(Lambda, TVar("x"), Dot, TVar("x"))
     assert(tokens.equals(expected))
   }
   test ("Lexer tokeniza reduce cbn λx.(λy.(y) x)"){
     val input = "reduce cbn λx.(λy.(y) x)"
-    val tokens = Lexer.tokenize(input)
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected:List[Token] = (
       List(Reduce,Space,CBN,Space,
         Lambda,TVar("x"),Dot,LPar,
@@ -26,7 +26,7 @@ class LexerTest extends AnyFunSuite:
     }
   test("Lexer tokeniza reduce cbn λx.(λy.(y) x con espacios extra)") {
     val input = "reduce  cbn λx .(λy. (y)     x)"
-    val tokens = Lexer.tokenize(input)
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected: List[Token] = (
       List(Reduce, Space, CBN, Space,
         Lambda, TVar("x"), Dot, LPar,
@@ -35,7 +35,7 @@ class LexerTest extends AnyFunSuite:
   }
   test("Lexer tokeniza reduce cbn (λx.(λy.(x))) y ") {
     val input = "reduce cbn (λx. (λy. (x))) y"
-    val tokens = Lexer.tokenize(input)
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected = List(
       Reduce, Space, CBN, Space, LPar, Lambda, TVar("x"), Dot,
       LPar, Lambda, TVar("y"), Dot, LPar, TVar("x"), RPar, RPar, RPar, Space, TVar("y")
@@ -43,7 +43,8 @@ class LexerTest extends AnyFunSuite:
     assert(expected.equals(tokens))
     }
   test("reduce cbn (λx.(x) y) (λy.(y) z)"){
-    val tokens = Lexer.tokenize("reduce cbn (λx.(x) y) (λy.(y) z)")
+    var input = "reduce cbn (λx.(x) y) (λy.(y) z)"
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected=List(
       Reduce,Space,CBN,Space,LPar,
       Lambda,TVar("x"),Dot,LPar,TVar("x"),RPar,Space,TVar("y"),RPar,
@@ -53,7 +54,7 @@ class LexerTest extends AnyFunSuite:
     }
   test("Lexer tokeniza reduce cbn λx.(λy.(x)) (y a)") {
     val input = "reduce cbn λx.(λy.(x)) (y a)"
-    val tokens = Lexer.tokenize(input)
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected = List(
       Reduce, Space, CBN, Space,
       Lambda, TVar("x"), Dot, LPar,
@@ -64,7 +65,7 @@ class LexerTest extends AnyFunSuite:
   }
   test("reduce cbn (λf.(f λx.(λy.(x)))) (λx.(λy.(λf.(f x y))) a b)") {
   val input = "reduce cbn (λf.(f λx.(λy.(x)))) (λx.(λy.(λf.(f x y))) a b)"
-  val tokens = Lexer.tokenize(input)
+  val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
   val expected = List(
     Reduce, Space, CBN, Space,
     LPar, Lambda, TVar("f"), Dot, LPar, TVar("f"), Space, Lambda, TVar("x"), Dot, LPar, Lambda, TVar("y"), Dot, LPar, TVar("x"), RPar, RPar, RPar, RPar,
@@ -75,7 +76,7 @@ class LexerTest extends AnyFunSuite:
 }
   test("Lexer tokeniza reduce cbn (λx.(λy.(y)) (λx.(x x) λx.(x x)))") {
     val input = "reduce cbn (λx.(λy.(y)) (λx.(x x) λx.(x x)))"
-    val tokens = Lexer.tokenize(input)
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected = List(
       Reduce, Space, CBN, Space,
       LPar, Lambda, TVar("x"), Dot,
@@ -90,7 +91,7 @@ class LexerTest extends AnyFunSuite:
   test("Lexer tokeniza comandos complejos con etiquetas y estrategias") {
     // Usamos un string simple sin saltos de línea raros para asegurar el test
     val input = "MI_EJEMPLO=(λx.(λy.(y)) (λx.(x x) λx.(x x))) calc_vars !MI_EJEMPLO reduce cbn !MI_EJEMPLO IDZ=λz.(z) calc_vars (λf.(f b)) (λx.(!IDZ) z) a reduce cbv debug (λf.(f b)) (λx.(!IDZ) z) a"
-    val tokens = Lexer.tokenize(input)
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected = List(
       //ES UN MONTÓN ESTO
       // MI_EJEMPLO=(λx.(λy.(y)) (λx.(x x) λx.(x x)))
@@ -114,7 +115,7 @@ class LexerTest extends AnyFunSuite:
 
   test("reduce cbn (λx.(λx.(y x))) z") {
   val input = "reduce cbn (λx.(λx.(y x))) z"
-  val tokens = Lexer.tokenize(input)
+  val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
   val expected = List(
     Reduce, Space, CBN, Space, LPar, Lambda, TVar("x"), Dot,
     LPar, Lambda, TVar("x"), Dot, LPar, TVar("y"), Space, TVar("x"),
@@ -124,7 +125,7 @@ class LexerTest extends AnyFunSuite:
 }
   test("reduce cbn λy.(λx.(y y)) a (λx.(x x) λx.(x x))") {
     val input = "reduce cbn λy.(λx.(y  y)) a (λx.(x x) λx.(x x))"
-    val tokens = Lexer.tokenize(input)
+    val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected = List(
       Reduce, Space, CBN, Space, Lambda, TVar("y"), Dot, LPar, Lambda, TVar("x"), Dot,
       LPar, TVar("y"), Space, TVar("y"), RPar, RPar, Space, TVar("a"), Space,
