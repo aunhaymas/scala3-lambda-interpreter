@@ -12,14 +12,32 @@ Repositorio mínimo para el intérprete de cálculo lambda del TP1. El programa 
 
 ```
 .
-├── src/main/scala/Main.scala   # Punto de entrada (stdin)
+├── src/main/scala/
+│   ├── Lambda.scala       # AST: Var / Abs / App + Tokens
+│   ├── Lexer.scala        # String -> List[Token]
+│   ├── Parser.scala       # List[Token] -> Lambda (AST)
+│   ├── Variables.scala    # libres / ligadas de un Lambda
+│   ├── Reductor.scala     # cbn, cbv, sustitucion alpha-segura, paso a paso (debug)
+│   ├── Tags.scala         # alias type Tags = Map[String, Lambda]
+│   ├── Main.scala         # Punto de entrada: stdin -> dispatch -> stdout
+│   ├── Interprete.scala   # (legacy, no se usa actualmente)
+│   └── Metodos.scala      # (legacy, no se usa actualmente)
+├── src/test/scala/        # tests unitarios (Variables, Reductor, Lexer)
 ├── ejemplos/
-│   ├── inputs/                 # Casos de prueba: una línea = una orden al intérprete
-│   └── outputs/                # Salida esperada en stdout (.res con el mismo nombre base)
+│   ├── inputs/            # Casos de prueba: una linea = una orden al interprete
+│   └── outputs/           # Salida esperada en stdout (.res con el mismo nombre base)
 ├── test_runner.sh
 ├── build.sbt
 └── README.md
 ```
+
+### Comandos soportados (por stdin)
+
+- `NOMBRE=expr` — define una etiqueta. Error si ya existia o si la expresion es invalida.
+- `!NOMBRE` — usa una etiqueta previamente definida en cualquier expresion.
+- `calc_vars expr` — imprime variables libres y ligadas.
+- `reduce cbn expr` / `reduce cbv expr` — reduce a forma normal e imprime el resultado.
+- `reduce cbn debug expr` / `reduce cbv debug expr` — imprime traza paso a paso (`EXPR=`, `CONV[..]=`, `SUST[..]=`).
 
 ## Cómo correr el intérprete
 
