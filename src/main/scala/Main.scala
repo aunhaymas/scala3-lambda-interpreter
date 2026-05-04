@@ -19,7 +19,7 @@ object Main {
   def ejecutar(linea: String, tags: Map[String, Lambda]): (Map[String, Lambda], List[String]) = {
     if (linea.isEmpty) (tags, List.empty)
     else if (linea.startsWith("calc_vars ")) calcularVariables(linea.drop(10), tags)
-    else if (linea.startsWith("reduce ")) (tags, List.empty)
+    else if (linea.startsWith("reduce ")) reducir(linea.drop(7), tags)
     else if (linea.contains("=")) (definirEtiqueta(linea, tags), List.empty)
     else (tags, List.empty)
   }
@@ -29,6 +29,22 @@ object Main {
     val libres = Variables.libres(exp).mkString(",")
     val ligadas = Variables.ligadas(exp).mkString(",")
     (tags, List(s"Variables libres: {$libres}", s"Variables ligadas: {$ligadas}"))
+  }
+
+  def reducir(resto: String, tags: Map[String, Lambda]): (Map[String, Lambda], List[String]) = {
+    val partes = resto.split(" ").toList
+    val (estrategia, sinEstrategia) = partes match {
+      case "cbn" :: t => (true, t)
+      case "cbv" :: t => (false, t)
+      case t => (true, t)
+    }
+    val expTexto = sinEstrategia match {
+      case "debug" :: t => t.mkString(" ")
+      case t => t.mkString(" ")
+    }
+    val exp = parsearConTags(expTexto, tags)
+    val reducida = Reductor.reducir(estrategia, exp)
+    (tags, List(mostrarFinal(reducida)))
   }
 
   def definirEtiqueta(linea: String, tags: Map[String, Lambda]): Map[String, Lambda] = {
@@ -48,6 +64,22 @@ object Main {
   def mostrar(exp: Lambda): String = exp match {
     case Var(nombre) => nombre
     case Abs(parametro, cuerpo) => "λ" + parametro + ".(" + mostrar(cuerpo) + ")"
-    case App(funcion, argumento) => mostrar(funcion) + " " + mostrar(argumento)
+    case App(funcion, argumento) => mostrarFuncion(funcion) + " " + mostrarArgumento(argumento)
+  }
+
+  def mostrarFuncion(exp: Lambda): String = exp match {
+    case Abs(_, _) => "(" + mostrar(exp) + ")"
+    case _ => mostrar(exp)
+  }
+
+  def mostrarArgumento(exp: Lambda): String = exp match {
+    case App(_, _) => "(" + mostrar(exp) + ")"
+    case Abs(_, _) => "(" + mostrar(exp) + ")"
+    case _ => mostrar(exp)
+  }
+
+  def mostrarFinal(exp: Lambda): String = exp match {
+    case Abs(parametro, Var(nombre)) => "λ" + parametro + "." + nombre
+    case _ => mostrar(exp)
   }
 }
