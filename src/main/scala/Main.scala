@@ -20,15 +20,19 @@ object Main {
     if (linea.isEmpty) (tags, List.empty)
     else if (linea.startsWith("calc_vars ")) calcularVariables(linea.drop(10), tags)
     else if (linea.startsWith("reduce ")) reducir(linea.drop(7), tags)
-    else if (linea.contains("=")) (definirEtiqueta(linea, tags), List.empty)
+    else if (linea.contains("=")) definirEtiqueta(linea, tags)
     else (tags, List.empty)
   }
 
   def calcularVariables(textoExp: String, tags: Map[String, Lambda]): (Map[String, Lambda], List[String]) = {
-    val exp = parsearConTags(textoExp, tags)
-    val libres = Variables.libres(exp).mkString(",")
-    val ligadas = Variables.ligadas(exp).mkString(",")
-    (tags, List(s"Variables libres: {$libres}", s"Variables ligadas: {$ligadas}"))
+    intentarParsear(textoExp, tags) match {
+      case Right(exp) =>
+        val libres = Variables.libres(exp).mkString(",")
+        val ligadas = Variables.ligadas(exp).mkString(",")
+        (tags, List(s"Variables libres: {$libres}", s"Variables ligadas: {$ligadas}"))
+      case Left(mensaje) =>
+        (tags, List(mensaje))
+    }
   }
 
   def reducir(resto: String, tags: Map[String, Lambda]): (Map[String, Lambda], List[String]) = {
@@ -42,16 +46,35 @@ object Main {
       case "debug" :: t => t.mkString(" ")
       case t => t.mkString(" ")
     }
-    val exp = parsearConTags(expTexto, tags)
-    val reducida = Reductor.reducir(estrategia, exp)
-    (tags, List(mostrarFinal(reducida)))
+    intentarParsear(expTexto, tags) match {
+      case Right(exp) =>
+        val reducida = Reductor.reducir(estrategia, exp)
+        (tags, List(mostrarFinal(reducida)))
+      case Left(mensaje) =>
+        (tags, List(mensaje))
+    }
   }
 
-  def definirEtiqueta(linea: String, tags: Map[String, Lambda]): Map[String, Lambda] = {
+  def definirEtiqueta(linea: String, tags: Map[String, Lambda]): (Map[String, Lambda], List[String]) = {
     val partes = linea.split("=", 2)
     val nombre = partes(0).trim
     val expTexto = partes(1).trim
-    tags + (nombre -> parsearConTags(expTexto, tags))
+    if (tags.contains(nombre)) {
+      (tags, List(s"Error: la etiqueta '$nombre' ya esta definida"))
+    } else {
+      intentarParsear(expTexto, tags) match {
+        case Right(exp) => (tags + (nombre -> exp), List.empty)
+        case Left(mensaje) => (tags, List(s"Error: expresion invalida en etiqueta '$nombre'"))
+      }
+    }
+  }
+
+  def intentarParsear(texto: String, tags: Map[String, Lambda]): Either[String, Lambda] = {
+    try {
+      Right(parsearConTags(texto, tags))
+    } catch {
+      case _: Throwable => Left(s"Error: no se pudo parsear la expresion '$texto'")
+    }
   }
 
   def parsearConTags(texto: String, tags: Map[String, Lambda]): Lambda = {
