@@ -105,7 +105,8 @@ object Main {
     val textoResuelto = tags.foldLeft(texto) { (acc, par) =>
       acc.replace("!" + par._1, mostrar(par._2))
     }
-    Parser.parsear(textoResuelto)
+    //Parser.parsear(textoResuelto)
+    Var("")
   }
 
   def mostrar(exp: Lambda): String = exp match {

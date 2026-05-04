@@ -1,7 +1,5 @@
+/*
 object Parser {
-  def parsear(linea: String): Lambda =
-    parsearRec(Lexer.tokenize(linea).filterNot(_ == Space))._1
-
   def parsearRec(tokens: List[Token]): (Lambda, List[Token]) = {
     val (h, t) = parsearLambda(tokens)
     def rec(acumulado: Lambda, tokens_restantes: List[Token]): (Lambda, List[Token]) =
@@ -28,3 +26,4 @@ object Parser {
         (Var(nombre), t)
     }
 }
+*/
