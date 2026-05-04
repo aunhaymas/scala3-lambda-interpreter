@@ -79,7 +79,7 @@ object Main {
   }
 
   def mostrarFinal(exp: Lambda): String = exp match {
-    case Abs(parametro, Var(nombre)) => "λ" + parametro + "." + nombre
+    case Abs(parametro, Var(nombre)) if parametro != nombre => "λ" + parametro + "." + nombre
     case _ => mostrar(exp)
   }
 }
