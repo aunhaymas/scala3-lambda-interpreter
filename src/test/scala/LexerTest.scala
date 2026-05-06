@@ -88,8 +88,7 @@ class LexerTest extends AnyFunSuite:
     )
     assert(tokens.equals(expected))
   }
-  test("Lexer tokeniza comandos complejos con etiquetas y estrategias") {
-    // Usamos un string simple sin saltos de línea raros para asegurar el test
+  test("Lexer tokeniza comandos con etiquetas y estrategias") {
     val input = "MI_EJEMPLO=(λx.(λy.(y)) (λx.(x x) λx.(x x))) calc_vars !MI_EJEMPLO reduce cbn !MI_EJEMPLO IDZ=λz.(z) calc_vars (λf.(f b)) (λx.(!IDZ) z) a reduce cbv debug (λf.(f b)) (λx.(!IDZ) z) a"
     val tokens = Lexer.tokenize(input).getOrElse(fail("Error en el lexer"))
     val expected = List(
