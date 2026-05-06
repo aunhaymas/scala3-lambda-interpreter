@@ -42,3 +42,20 @@ class ReductorTest extends AnyFunSuite:
       case otro => fail(s"Esperaba PasoCONV[y -> y'], llego $otro")
     }
   }
+  test("omega_cbn") {
+    //val exp = App(Abs("x", Abs("y", Var("y"))), App(Abs("x", App(Var("x"), Var("x"))), Abs("x", App(Var("x"), Var("x")))))
+    val exp = Parser.parsear("(λx.(λy.(y)) (λx.(x x) λx.(x x)))") match {
+      case Right(l) => l
+      case Left(err) => fail(err)
+    }
+    val res = Abs("y", Var("y"))
+    assert(Reductor.reducir(true, exp) == res)
+  }
+  test("abs_y_x_cbn") {
+    val exp = Parser.parsear("λx.(λy.(y) x)") match {
+      case Right(l) => l
+      case Left(err) => fail(err)
+    }
+    val res = Abs("x", Var("x"))
+    assert(Reductor.reducir(true, exp) == res)
+  }

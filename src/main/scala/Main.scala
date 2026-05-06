@@ -4,6 +4,7 @@ import scala.annotation.tailrec
 object Main {
   def main(args: Array[String]): Unit = {
     val lineas = Source.stdin.getLines().toList
+    //val lineas = List("MI_EJEMPLO=(λx.(λy.(y)) (λx.(x x) λx.(x x)))", "calc_vars !MI_EJEMPLO", "reduce cbn !MI_EJEMPLO", "IDZ=λz.(z)", "calc_vars (λf.(f b)) (λx.(!IDZ) z) a", "reduce cbv debug (λf.(f b)) (λx.(!IDZ) z) a")
     val resultado = procesar(lineas, Map.empty[String, Lambda], List.empty[String])
     resultado.foreach(println)
   }
@@ -95,18 +96,20 @@ object Main {
 
   def intentarParsear(texto: String, tags: Map[String, Lambda]): Either[String, Lambda] = {
     try {
-      Right(parsearConTags(texto, tags))
+      parsearConTags(texto, tags) match {
+        case Right(exp) => Right(exp)
+        case Left(err) => Left(err)
+      }
     } catch {
       case _: Throwable => Left(s"Error: no se pudo parsear la expresion '$texto'")
     }
   }
 
-  def parsearConTags(texto: String, tags: Map[String, Lambda]): Lambda = {
+  def parsearConTags(texto: String, tags: Map[String, Lambda]): Either[String, Lambda] = {
     val textoResuelto = tags.foldLeft(texto) { (acc, par) =>
       acc.replace("!" + par._1, mostrar(par._2))
     }
-    //Parser.parsear(textoResuelto)
-    Var("")
+    Parser.parsear(textoResuelto)
   }
 
   def mostrar(exp: Lambda): String = exp match {
