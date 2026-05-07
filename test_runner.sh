@@ -48,7 +48,7 @@ while IFS= read -r archivo_input; do
     fi
 
     # Intérprete MonaLambda: stdin desde el .txt, sin argumentos (-Dsbt.color=false vía SBT_OPTS)
-    sbt -batch 'run' < "$archivo_input" 2>&1 \
+    sbt 'run' < "$archivo_input" 2>&1 \
         | grep -v '^\[info\]' \
         | grep -v '^\[success\]' \
         | grep -v '^\[warn\]' \
