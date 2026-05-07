@@ -12,36 +12,34 @@ Repositorio mínimo para el intérprete de cálculo lambda del TP1. El programa 
 
 ```
 .
-├── src/main/scala/
-│   ├── Lambda.scala       # AST: Var / Abs / App + Tokens
-│   ├── Lexer.scala        # String -> List[Token]
-│   ├── Parser.scala       # List[Token] -> Lambda (AST)
-│   ├── Variables.scala    # libres / ligadas de un Lambda
-│   ├── Reductor.scala     # cbn, cbv, sustitucion alpha-segura, paso a paso (debug)
-│   ├── Tags.scala         # alias type Tags = Map[String, Lambda]
-│   ├── Main.scala         # Punto de entrada: stdin -> dispatch -> stdout
-│   ├── Interprete.scala   # (legacy, no se usa actualmente)
-│   └── Metodos.scala      # (legacy, no se usa actualmente)
-├── src/test/scala/        # tests unitarios (Variables, Reductor, Lexer)
+├── src/main/scala/Main.scala   # Punto de entrada (stdin)
 ├── ejemplos/
-│   ├── inputs/            # Casos de prueba: una linea = una orden al interprete
-│   └── outputs/           # Salida esperada en stdout (.res con el mismo nombre base)
+│   ├── inputs/                 # Casos de prueba: una línea = una orden al intérprete
+│   └── outputs/                # Salida esperada en stdout (.res con el mismo nombre base)
 ├── test_runner.sh
 ├── build.sbt
 └── README.md
 ```
 
-### Comandos soportados (por stdin)
+## stdin y sbt (`fork` + `connectInput`)
 
-- `NOMBRE=expr` — define una etiqueta. Error si ya existia o si la expresion es invalida.
-- `!NOMBRE` — usa una etiqueta previamente definida en cualquier expresion.
-- `calc_vars expr` — imprime variables libres y ligadas.
-- `reduce cbn expr` / `reduce cbv expr` — reduce a forma normal e imprime el resultado.
-- `reduce cbn debug expr` / `reduce cbv debug expr` — imprime traza paso a paso (`EXPR=`, `CONV[..]=`, `SUST[..]=`).
+El proyecto declara en `build.sbt`:
+
+```scala
+Compile / run / fork := true
+Compile / run / connectInput := true
+```
+
+**Por qué:** si `fork` es `false` (valor histórico de sbt), `run` ejecuta `Main` **dentro de la JVM de sbt**. En ese modo la entrada estándar **no tiene por qué** ser la del proceso que invocaste (en la práctica viene vacía o se comporta mal con `run < archivo`, WSL y algunos IDEs).
+
+Con **`fork := true`** el programa corre en otro proceso Java y **`connectInput := true`** le enchufa ese mismo stdin que recibe sbt desde la terminal o la redirección `< archivo`.
+
+`Source.stdin.getLines()` y `StdIn.readLine()` son válidos cuando está bien conectado el stdin; cualquiera de los dos debería servir junto con la configuración anterior.
 
 ## Cómo correr el intérprete
 
 Desde la raíz del proyecto, compilá y ejecutá **sin argumentos**; escribí órdenes por stdin (o redirigí un archivo):
+Desde la **raíz del repo**:
 
 ```bash
 sbt compile
@@ -49,10 +47,33 @@ sbt run < mi_entrada.txt
 ```
 
 En una sola invocación:
+Ejemplo contra un caso de ejemplo:
+
+```bash
+sbt run < ejemplos/inputs/omega_cbn.txt
+```
+
+En una sola invocación (útil para scripts; no bloquea en el prompt interactivo de sbt):
 
 ```bash
 sbt -batch run < mi_entrada.txt
 ```
+
+`-batch` solo evita el modo shell interactivo de sbt; **no** “roba” líneas del archivo pasado por `<`; el problema que suelen tener los grupos sin `fork`/`connectInput` es otro.
+
+## IntelliJ / Cursor / otros IDEs
+
+- **Pruebas automatizadas:** ejecutá `./test_runner.sh` desde una **terminal** del IDE en la carpeta raíz del proyecto (no suele estar ligada al problema de `-batch`).
+- **Ejecutar `Main` con archivo de entrada:** el botón “Run” típico **no** redirige un `.txt` a stdin salvo que lo configures en la corrida.
+
+En **IntelliJ IDEA** con plugin Scala:
+
+1. *Run → Edit Configurations…* → tu configuración de `Main`.
+2. *Modify options → Redirect input from* y elegís el archivo `.txt`.
+
+Si no aparece esa opción, usá una terminal dentro del IDE y el comando `sbt run < ejemplos/inputs/omega_cbn.txt`.
+
+Asegurate de tener **Working directory** = raíz del proyecto (donde está `build.sbt`).
 
 ## Cómo correr las pruebas de la cátedra
 
