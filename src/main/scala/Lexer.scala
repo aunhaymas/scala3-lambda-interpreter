@@ -60,7 +60,8 @@ object Lexer {
       // Space finales
       case h::Space::Nil => clean_spaces(Nil,h::accum)
       // Space entre dos elementos que no son parentesis o TVars
-      case h::Space::rest if h==LPar || h==Lambda || h==Dot||h==Equal
+      case h::Space::rest if h==LPar || h==Lambda || h==Dot || h==Equal ||
+        h==Reduce || h==CBN || h==CBV || h==Debug || h==CalcVars
       => clean_spaces(h::rest,accum)
       // Space antes de ')':  (λx.x   )-> (λx.x)
       case Space::mid::rest if mid==RPar || mid==Dot

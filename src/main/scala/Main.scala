@@ -1,10 +1,33 @@
-import scala.io.Source
+import scala.io.StdIn
+import scala.annotation.tailrec
 
 object Main {
+  // capa impura que envuelve lo funcional
   def main(args: Array[String]): Unit = {
-    val lineas = Source.stdin.getLines().toList
-    //val lineas = List("MI_EJEMPLO=(λx.(λy.(y)) (λx.(x x) λx.(x x)))", "calc_vars !MI_EJEMPLO", "reduce cbn !MI_EJEMPLO", "IDZ=λz.(z)", "calc_vars (λf.(f b)) (λx.(!IDZ) z) a", "reduce cbv debug (λf.(f b)) (λx.(!IDZ) z) a")
-    val resultado = Interprete.procesar(lineas, Map.empty[String, Lambda], List.empty[String])
-    resultado.foreach(println)
+    terminal(Map.empty[String, Lambda])
+  }
+
+
+  @tailrec
+  def terminal(contextoActual: Map[String, Lambda]): Unit = {
+    // Mona anti sai efets
+    Option(StdIn.readLine()) match {
+      case None => ()
+      case Some(linea) =>
+        linea.trim match {
+          case "" =>
+            terminal(contextoActual)
+          case texto => val (nuevoContexto, salida) = Interprete.ejecutarLinea(texto, contextoActual)
+            printOutput(salida)
+            terminal(nuevoContexto)
+        }
+    }
+  }
+
+  def printOutput(outputs: List[String]): Unit = outputs match {
+    case Nil => ()
+    case h :: t =>
+      println(h)
+      printOutput(t)
   }
 }
