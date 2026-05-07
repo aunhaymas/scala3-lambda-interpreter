@@ -1,0 +1,1 @@
+calc_vars (λf.(f b)) (λx.((λz.(z)) z)) a

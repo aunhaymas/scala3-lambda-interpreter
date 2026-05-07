@@ -1,0 +1,3 @@
+TAG=(λx.(λy.(x)))
+TAG=λz.(z)
+reduce cbv debug (!TAG a) ((λz.(z)) b)

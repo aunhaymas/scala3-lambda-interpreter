@@ -1,0 +1,2 @@
+IDZ=λz.(z)
+reduce cbn (λx.(!IDZ) a) b

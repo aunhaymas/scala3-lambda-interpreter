@@ -78,12 +78,15 @@ object Reductor {
 
   def unPasoCBV(exp: Lambda): Option[PasoReduccion] = exp match {
     case App(funcion, argumento) =>
-      unPasoCBV(funcion) match {
-        case Some(paso) => Some(envolver(paso, n => App(n, argumento)))
+      // Intenta reducir primero a la derecha
+      unPasoCBV(argumento) match {
+        case Some(paso) => Some(envolver(paso, n => App(funcion, n)))
         case None =>
-          unPasoCBV(argumento) match {
-            case Some(paso) => Some(envolver(paso, n => App(funcion, n)))
+          // si arg ya no se puede reducir, reduce izq (funcion)
+          unPasoCBV(funcion) match {
+            case Some(paso) => Some(envolver(paso, n => App(n, argumento)))
             case None =>
+              // cuando sean "normales" --> reduccion Beta
               funcion match {
                 case Abs(parametro, cuerpo) => Some(pasoBeta(parametro, cuerpo, argumento))
                 case _ => None
@@ -94,6 +97,8 @@ object Reductor {
       unPasoCBV(cuerpo).map(p => envolver(p, n => Abs(parametro, n)))
     case _ => None
   }
+
+
 
   def pasoBeta(parametro: String, cuerpo: Lambda, argumento: Lambda): PasoReduccion = {
     necesitaAlpha(cuerpo, parametro, argumento) match {
