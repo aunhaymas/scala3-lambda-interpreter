@@ -28,7 +28,7 @@ object Metodos {
           tags
         )
       // CBV
-      case resto =>
+      case CBV::resto =>
         reducirNormal(
           false,
           resto,
