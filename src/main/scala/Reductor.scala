@@ -5,8 +5,9 @@ case class PasoCONV(viejo: String, nuevo: String, nuevaExp: Lambda) extends Paso
 case class PasoSUST(parametro: String, argumento: Lambda, nuevaExp: Lambda) extends PasoReduccion
 
 object Reductor {
-  def reducir(estrategia: Boolean, exp: Lambda): Lambda = {
-    if (estrategia) reducirCBN(exp) else reducirCBV(exp)
+  def reducir(estrategia: Boolean, exp: Lambda): Lambda = estrategia match{
+    case true =>  reducirCBN(exp)
+    case false => reducirCBV(exp)
   }
 
   def reducirCBN(exp: Lambda): Lambda = exp match {
@@ -36,31 +37,33 @@ object Reductor {
   }
 
   def sustituir(exp: Lambda, variable: String, valor: Lambda): Lambda = exp match {
-    case Var(nombre) =>
-      if (nombre == variable) valor else Var(nombre)
+    case Var(nombre) if (nombre == variable) =>valor
+    case Var(nombre) =>Var(nombre)
     case App(funcion, argumento) =>
       App(sustituir(funcion, variable, valor), sustituir(argumento, variable, valor))
+    case Abs(parametro, cuerpo) if (parametro == variable) =>Abs(parametro, cuerpo)
+
+    case Abs(parametro, cuerpo) if Variables.libres(valor).contains(parametro) =>
+      val ocupados = (Variables.libres(valor) ++ Variables.libres(cuerpo)).toSet
+      val nuevoParametro = nombreFresco(parametro,ocupados)
+      val cuerpoRenombrado = sustituir(cuerpo, parametro, Var(nuevoParametro))
+      Abs(nuevoParametro, sustituir(cuerpoRenombrado, variable, valor))
     case Abs(parametro, cuerpo) =>
-      if (parametro == variable) Abs(parametro, cuerpo)
-      else if (Variables.libres(valor).contains(parametro)) {
-        val ocupados = (Variables.libres(valor) ++ Variables.libres(cuerpo)).toSet
-        val nuevoParametro = nombreFresco(parametro, ocupados)
-        val cuerpoRenombrado = sustituir(cuerpo, parametro, Var(nuevoParametro))
-        Abs(nuevoParametro, sustituir(cuerpoRenombrado, variable, valor))
-      } else {
-        Abs(parametro, sustituir(cuerpo, variable, valor))
-      }
+      Abs(parametro, sustituir(cuerpo,variable,valor))
   }
 
   @tailrec
   def nombreFresco(base: String, ocupados: Set[String]): String = {
     val candidato = base + "'"
-    if (ocupados.contains(candidato)) nombreFresco(candidato, ocupados)
-    else candidato
+    ocupados.contains(candidato) match {
+      case true =>nombreFresco(candidato, ocupados)
+      case false => candidato
+    }
   }
 
-  def unPaso(estrategia: Boolean, exp: Lambda): Option[PasoReduccion] = {
-    if (estrategia) unPasoCBN(exp) else unPasoCBV(exp)
+  def unPaso(estrategia: Boolean, exp: Lambda): Option[PasoReduccion]= estrategia match{
+    case true => unPasoCBN(exp)
+    case false => unPasoCBV(exp)
   }
 
   def unPasoCBN(exp: Lambda): Option[PasoReduccion] = exp match {
@@ -117,12 +120,12 @@ object Reductor {
   }
 
   def necesitaAlpha(exp: Lambda, variable: String, valor: Lambda): Option[(String, String)] = exp match {
-    case Abs(parametro, cuerpo) =>
-      if (parametro == variable) None
-      else if (Variables.libres(valor).contains(parametro)) {
+    case Abs(parametro, _) if (parametro == variable) => None
+    case Abs(parametro, _) if (Variables.libres(valor).contains(parametro))=> {
         val ocupados = (Variables.libres(valor) ++ Variables.libres(exp)).toSet
         Some((parametro, nombreFresco(parametro, ocupados)))
-      } else necesitaAlpha(cuerpo, variable, valor)
+      }
+    case Abs(parametro, cuerpo) =>necesitaAlpha(cuerpo, variable, valor)
     case App(funcion, argumento) =>
       necesitaAlpha(funcion, variable, valor).orElse(necesitaAlpha(argumento, variable, valor))
     case Var(_) => None
@@ -134,9 +137,10 @@ object Reductor {
     case Abs(parametro, cuerpo) =>
       Abs(parametro, renombrarPrimero(cuerpo, viejo, nuevo))
     case App(funcion, argumento) =>
-      val nuevaFuncion = renombrarPrimero(funcion, viejo, nuevo)
-      if (nuevaFuncion != funcion) App(nuevaFuncion, argumento)
-      else App(funcion, renombrarPrimero(argumento, viejo, nuevo))
+      renombrarPrimero(funcion, viejo, nuevo) match {
+        case `funcion` => App(funcion, renombrarPrimero(argumento, viejo, nuevo))
+        case nueva     => App(nueva, argumento)
+      }
     case _ => exp
   }
 }
